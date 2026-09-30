@@ -154,6 +154,19 @@ export const TerminalFontSize = Schema.Int.check(
 export type TerminalFontSize = typeof TerminalFontSize.Type;
 const DEFAULT_TERMINAL_FONT_SIZE: TerminalFontSize = 12;
 
+/**
+ * Line height of assistant responses in the chat timeline, as a unitless
+ * multiplier. The default is `leading-relaxed`, the value before this became
+ * a preference.
+ */
+export const MIN_CHAT_LINE_HEIGHT = 1.3;
+export const MAX_CHAT_LINE_HEIGHT = 2;
+export const ChatLineHeight = Schema.Number.check(
+  Schema.isBetween({ minimum: MIN_CHAT_LINE_HEIGHT, maximum: MAX_CHAT_LINE_HEIGHT }),
+);
+export type ChatLineHeight = typeof ChatLineHeight.Type;
+export const DEFAULT_CHAT_LINE_HEIGHT: ChatLineHeight = 1.625;
+
 export const EnvironmentIdentificationMode = Schema.Literals(["artwork", "pill", "none"]);
 export type EnvironmentIdentificationMode = typeof EnvironmentIdentificationMode.Type;
 export const DEFAULT_ENVIRONMENT_IDENTIFICATION_MODE: EnvironmentIdentificationMode = "artwork";
@@ -391,6 +404,9 @@ export const ClientSettingsSchema = Schema.Struct({
   ),
   fontSizeTerminal: TerminalFontSize.pipe(
     Schema.withDecodingDefault(Effect.succeed(DEFAULT_TERMINAL_FONT_SIZE)),
+  ),
+  chatLineHeight: ChatLineHeight.pipe(
+    Schema.withDecodingDefault(Effect.succeed(DEFAULT_CHAT_LINE_HEIGHT)),
   ),
   fontFamilyCode: FontFamilyPreference.pipe(Schema.withDecodingDefault(Effect.succeed(""))),
   fontFamilyComposer: FontFamilyPreference.pipe(Schema.withDecodingDefault(Effect.succeed(""))),
@@ -1625,6 +1641,7 @@ export const ClientSettingsPatch = Schema.Struct({
   fontSizePrompt: Schema.optionalKey(PromptFontSize),
   fontSizeCode: Schema.optionalKey(CodeFontSize),
   fontSizeTerminal: Schema.optionalKey(TerminalFontSize),
+  chatLineHeight: Schema.optionalKey(ChatLineHeight),
   fontFamilyCode: Schema.optionalKey(FontFamilyPreference),
   fontFamilyComposer: Schema.optionalKey(FontFamilyPreference),
   fontFamilySans: Schema.optionalKey(FontFamilyPreference),

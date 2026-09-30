@@ -6,12 +6,15 @@
  */
 
 import {
+  DEFAULT_CHAT_LINE_HEIGHT,
   DEFAULT_CODE_FONT_SIZE,
   DEFAULT_INTERFACE_FONT_SIZE,
   DEFAULT_PROMPT_FONT_SIZE,
+  MAX_CHAT_LINE_HEIGHT,
   MAX_CODE_FONT_SIZE,
   MAX_INTERFACE_FONT_SIZE,
   MAX_PROMPT_FONT_SIZE,
+  MIN_CHAT_LINE_HEIGHT,
   MIN_CODE_FONT_SIZE,
   MIN_INTERFACE_FONT_SIZE,
   MIN_PROMPT_FONT_SIZE,
@@ -78,6 +81,8 @@ export interface AppearanceFontPreferences {
   readonly sizeInterface: number;
   readonly sizePrompt: number;
   readonly sizeCode: number;
+  /** Unitless line height of assistant responses in the chat timeline. */
+  readonly chatLineHeight: number;
   /** Grayscale `antialiased` rendering; false keeps the heavier platform default. */
   readonly smoothing: boolean;
 }
@@ -115,6 +120,10 @@ export function applyAppearanceFontVariables(
   root.style.setProperty("--font-size-code", `${code}px`);
   // The @pierre/diffs surfaces read their own hook for code text.
   root.style.setProperty("--diffs-font-size", `${code}px`);
+  root.style.setProperty(
+    "--chat-line-height",
+    String(clampChatLineHeight(preferences.chatLineHeight)),
+  );
 
   // Inherited from the root; only macOS engines honor the property, so no
   // platform gate is needed here. Smoothing on means grayscale `antialiased`
@@ -147,6 +156,12 @@ export function clampPromptFontSize(value: number): number {
 
 export function clampCodeFontSize(value: number): number {
   return clampFontSize(value, MIN_CODE_FONT_SIZE, MAX_CODE_FONT_SIZE, DEFAULT_CODE_FONT_SIZE);
+}
+
+// Not rounded like the pixel sizes: line heights are fractional multipliers.
+export function clampChatLineHeight(value: number): number {
+  if (!Number.isFinite(value)) return DEFAULT_CHAT_LINE_HEIGHT;
+  return Math.min(MAX_CHAT_LINE_HEIGHT, Math.max(MIN_CHAT_LINE_HEIGHT, value));
 }
 
 const FONT_PROBE_TEXT = "mmmmmmmmMMWli1O0@# fjord";

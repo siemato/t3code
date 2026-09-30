@@ -2,6 +2,7 @@ import { describe, expect, it } from "vite-plus/test";
 
 import {
   areFontAdvancesMonospace,
+  clampChatLineHeight,
   clampCodeFontSize,
   clampInterfaceFontSize,
   clampPromptFontSize,
@@ -106,5 +107,17 @@ describe("font size clamping", () => {
     expect(clampCodeFontSize(13.4)).toBe(13);
     expect(clampInterfaceFontSize(Number.NaN)).toBe(16);
     expect(clampPromptFontSize(Number.POSITIVE_INFINITY)).toBe(14);
+  });
+});
+
+describe("chat line height clamping", () => {
+  it("keeps fractional line heights and bounds them to the supported range", () => {
+    expect(clampChatLineHeight(1.45)).toBe(1.45);
+    expect(clampChatLineHeight(1)).toBe(1.3);
+    expect(clampChatLineHeight(3)).toBe(2);
+  });
+
+  it("falls back to the default for unusable input", () => {
+    expect(clampChatLineHeight(Number.NaN)).toBe(1.625);
   });
 });

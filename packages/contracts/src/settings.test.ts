@@ -77,6 +77,22 @@ describe("ClientSettings rich text composer", () => {
   });
 });
 
+describe("ClientSettings chat line height", () => {
+  it("keeps the previous fixed line height for settings saved without one", () => {
+    expect(decodeClientSettings({}).chatLineHeight).toBe(1.625);
+  });
+
+  it("round-trips a fractional preference through patches and persistence", () => {
+    const preference = { chatLineHeight: 1.4 };
+    expect(decodeClientSettingsPatch(preference)).toEqual(preference);
+    expect(encodeClientSettings(decodeClientSettings(preference))).toMatchObject(preference);
+  });
+
+  it.each([1.2, 2.1, Number.NaN])("rejects line height %s", (chatLineHeight) => {
+    expect(() => decodeClientSettingsPatch({ chatLineHeight })).toThrow();
+  });
+});
+
 describe("ServerSettings default permissions", () => {
   it("keeps full access for settings saved before a default was configured", () => {
     expect(decodeServerSettings({}).defaultRuntimeMode).toBe("full-access");

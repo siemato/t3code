@@ -26,6 +26,7 @@ import {
   type DiffLayout,
   type EnvironmentIdentificationMode,
   MAX_APPEARANCE_CONTRAST,
+  MAX_CHAT_LINE_HEIGHT,
   MAX_CODE_FONT_SIZE,
   MAX_GLASS_OPACITY,
   MAX_INTERFACE_FONT_SIZE,
@@ -33,6 +34,7 @@ import {
   MAX_PROMPT_FONT_SIZE,
   MAX_SIDEBAR_AUTO_SETTLE_AFTER_DAYS,
   MAX_TERMINAL_FONT_SIZE,
+  MIN_CHAT_LINE_HEIGHT,
   MIN_CODE_FONT_SIZE,
   MIN_APPEARANCE_CONTRAST,
   MIN_GLASS_OPACITY,
@@ -570,6 +572,9 @@ export function useSettingsRestore(onRestored?: () => void) {
       ...(settings.sidebarAutoSettleOnMerge !== DEFAULT_UNIFIED_SETTINGS.sidebarAutoSettleOnMerge
         ? ["Auto-settle merged threads"]
         : []),
+      ...(settings.chatLineHeight !== DEFAULT_UNIFIED_SETTINGS.chatLineHeight
+        ? ["Line height"]
+        : []),
       ...(settings.wordWrap !== DEFAULT_UNIFIED_SETTINGS.wordWrap ? ["Word wrap"] : []),
       ...getChangedTypographySettingLabels(settings),
       ...(settings.diffFilesCollapsed !== DEFAULT_UNIFIED_SETTINGS.diffFilesCollapsed
@@ -689,6 +694,7 @@ export function useSettingsRestore(onRestored?: () => void) {
       settings.timestampFormat,
       settings.notificationMode,
       settings.inAppNotificationsEnabled,
+      settings.chatLineHeight,
       settings.wordWrap,
       followSystem,
       theme,
@@ -765,6 +771,7 @@ export function useSettingsRestore(onRestored?: () => void) {
       timestampFormat: DEFAULT_UNIFIED_SETTINGS.timestampFormat,
       notificationMode: DEFAULT_UNIFIED_SETTINGS.notificationMode,
       inAppNotificationsEnabled: DEFAULT_UNIFIED_SETTINGS.inAppNotificationsEnabled,
+      chatLineHeight: DEFAULT_UNIFIED_SETTINGS.chatLineHeight,
       wordWrap: DEFAULT_UNIFIED_SETTINGS.wordWrap,
       diffFilesCollapsed: DEFAULT_UNIFIED_SETTINGS.diffFilesCollapsed,
       diffIgnoreWhitespace: DEFAULT_UNIFIED_SETTINGS.diffIgnoreWhitespace,
@@ -1679,6 +1686,65 @@ function FontSmoothingRow() {
   );
 }
 
+// 0.05 steps across the allowed range, plus the default, which sits between.
+const CHAT_LINE_HEIGHT_OPTIONS: readonly number[] = [
+  ...Array.from(
+    { length: Math.round((MAX_CHAT_LINE_HEIGHT - MIN_CHAT_LINE_HEIGHT) / 0.05) + 1 },
+    (_, index) => Number((MIN_CHAT_LINE_HEIGHT + index * 0.05).toFixed(2)),
+  ),
+  DEFAULT_UNIFIED_SETTINGS.chatLineHeight,
+].toSorted((left, right) => left - right);
+
+function formatChatLineHeight(value: number): string {
+  return value === DEFAULT_UNIFIED_SETTINGS.chatLineHeight ? `${value} (default)` : String(value);
+}
+
+function LineHeightRow() {
+  const settings = useScopedSettings();
+  const updateSettings = useUpdateScopedSettings();
+  return (
+    <SettingsRow
+      {...searchableSetting("line-height")}
+      description="Spacing between lines in responses. Tighter settings add room around headings, list items, and code blocks."
+      resetAction={
+        settings.chatLineHeight !== DEFAULT_UNIFIED_SETTINGS.chatLineHeight ? (
+          <SettingResetButton
+            label="line height"
+            onClick={() =>
+              updateSettings({ chatLineHeight: DEFAULT_UNIFIED_SETTINGS.chatLineHeight })
+            }
+          />
+        ) : null
+      }
+      control={
+        <div className="w-full sm:w-40">
+          <Select
+            value={String(settings.chatLineHeight)}
+            onValueChange={(next) => {
+              if (typeof next !== "string") return;
+              const parsed = Number(next);
+              if (parsed >= MIN_CHAT_LINE_HEIGHT && parsed <= MAX_CHAT_LINE_HEIGHT) {
+                updateSettings({ chatLineHeight: parsed });
+              }
+            }}
+          >
+            <SelectTrigger size="sm" className="w-full min-w-0" aria-label="Line height">
+              <SelectValue>{formatChatLineHeight(settings.chatLineHeight)}</SelectValue>
+            </SelectTrigger>
+            <SelectPopup align="end" alignItemWithTrigger={false}>
+              {CHAT_LINE_HEIGHT_OPTIONS.map((option) => (
+                <SelectItem hideIndicator key={option} value={String(option)}>
+                  {formatChatLineHeight(option)}
+                </SelectItem>
+              ))}
+            </SelectPopup>
+          </Select>
+        </div>
+      }
+    />
+  );
+}
+
 function WordWrapRow() {
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
@@ -1802,6 +1868,7 @@ function TypographySection() {
       }
     >
       {advanced ? <FontSettingsGroup /> : <SimpleFontRows />}
+      <LineHeightRow />
       <WordWrapRow />
     </SettingsSection>
   );

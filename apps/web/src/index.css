@@ -1708,6 +1708,26 @@ code {
 
 /* Chat markdown rendering */
 
+/* Assistant responses in the chat timeline follow the Line height setting
+   (--chat-line-height). Tighter lines flatten a response's structure, so as
+   the setting drops below the default the gaps around headings, list items,
+   and code blocks widen to keep sections and points apart; above it only the
+   paragraph gap grows, so paragraph breaks stay visible. At the default every
+   value equals the fallback in the rules below, which is all other markdown
+   surfaces ever use. Code and table line heights are not affected. */
+[data-chat-timeline] .chat-markdown {
+  --chat-lh: var(--chat-line-height, 1.625);
+  /* 0 at the default line height, 1 at 1.4, growing linearly below that. */
+  --chat-tightness: max(0, (1.625 - var(--chat-lh)) / 0.225);
+  --chat-markdown-line-height: var(--chat-lh);
+  --chat-heading-line-height: calc(1.3 + (var(--chat-lh) - 1.625) * 4 / 9);
+  --chat-block-gap: calc(0.65rem * max(1, var(--chat-lh) / 1.625));
+  --chat-heading-gap-before: calc(1.25rem + 0.5rem * var(--chat-tightness));
+  --chat-list-item-gap: calc(0.25rem + 0.25rem * var(--chat-tightness));
+  --chat-code-gap-before: calc(0.65rem + 0.35rem * var(--chat-tightness));
+  --chat-code-gap-after: calc(0.65rem + 0.6rem * var(--chat-tightness));
+}
+
 .chat-markdown > :first-child {
   margin-top: 0;
 }
@@ -1722,7 +1742,7 @@ code {
 .chat-markdown blockquote,
 .chat-markdown pre,
 .chat-markdown .chat-markdown-table-container {
-  margin: 0.65rem 0;
+  margin: var(--chat-block-gap, 0.65rem) 0;
 }
 
 .chat-markdown h1,
@@ -1731,9 +1751,9 @@ code {
 .chat-markdown h4,
 .chat-markdown h5,
 .chat-markdown h6 {
-  margin: 1.25rem 0 0.5rem;
+  margin: var(--chat-heading-gap-before, 1.25rem) 0 0.5rem;
   font-weight: 600;
-  line-height: 1.3;
+  line-height: var(--chat-heading-line-height, 1.3);
   color: var(--contrast-foreground);
 }
 
@@ -1800,7 +1820,7 @@ code {
 }
 
 .chat-markdown li + li {
-  margin-top: 0.25rem;
+  margin-top: var(--chat-list-item-gap, 0.25rem);
 }
 
 /* GitHub-style task lists: the checkbox replaces the list marker. */

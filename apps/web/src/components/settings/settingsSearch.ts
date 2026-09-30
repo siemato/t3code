@@ -262,6 +262,12 @@ export const SETTINGS_SEARCH_ITEMS = [
     macOnly: true,
   },
   {
+    id: "line-height",
+    title: "Line height",
+    to: "/settings/appearance",
+    searchTerms: ["typography line spacing leading density responses messages"],
+  },
+  {
     id: "word-wrap",
     title: "Word wrap",
     to: "/settings/appearance",
